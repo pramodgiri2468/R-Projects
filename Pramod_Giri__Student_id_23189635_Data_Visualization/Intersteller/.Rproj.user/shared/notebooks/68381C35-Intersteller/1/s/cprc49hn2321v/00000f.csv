@@ -1,0 +1,3 @@
+"0","# Remove the 'obj_ID' and 'spec_obj_ID' columns"
+"0","data <- data[, !(names(data) %in% c('obj_ID', 'spec_obj_ID'))]"
+"0","data"

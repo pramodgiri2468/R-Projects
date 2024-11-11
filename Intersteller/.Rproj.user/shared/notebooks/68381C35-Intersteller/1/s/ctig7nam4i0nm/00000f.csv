@@ -1,0 +1,11 @@
+"0","# Plot celestial coordinates (alpha vs delta)"
+"0","ggplot(data_clean, aes(x = alpha, y = delta, color = class)) +"
+"0","  geom_point(alpha = 0.5) +"
+"0","  theme_minimal() +"
+"0","  ggtitle(""Celestial Coordinates by Object Class"") +"
+"0","  scale_color_manual(values = c(""GALAXY"" = ""blue"", ""STAR"" = ""green"", ""QUASAR"" = ""red""))"
+"0","# Run the application"
+"0","shinyApp(ui = ui, server = server)"
+"2","Error in shinyApp(ui = ui, server = server) : 
+  could not find function ""shinyApp""
+"

@@ -1,0 +1,2 @@
+"0","data <- read.csv(""C:/Users/Hp/Desktop/Intersteller/Intersteller/Intersteller.csv"")"
+"0","head(data)"

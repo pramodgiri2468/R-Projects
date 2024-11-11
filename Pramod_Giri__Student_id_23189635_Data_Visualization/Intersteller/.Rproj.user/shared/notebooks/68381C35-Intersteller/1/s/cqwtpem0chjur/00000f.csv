@@ -1,0 +1,4 @@
+"0","# Normalize features like u, g, r, i, z, and redshift"
+"0","data_clean <- data_clean %>%"
+"0","  mutate(across(c(u, g, r, i, z, redshift), scale))"
+"0","data_clean"

@@ -1,0 +1,5 @@
+"0","# Distribution of delta"
+"0","ggplot(data_clean, aes(x = delta)) +"
+"0","  geom_histogram(bins = 30, fill = ""skyblue"", color = ""black"") +"
+"0","  theme_minimal() +"
+"0","  ggtitle(""Distribution of Delta (Declination)"")"

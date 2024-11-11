@@ -1,0 +1,663 @@
+---
+title: "Interstellar Object Classification and Analysis"
+author: "Pramod Giri"
+date: "`r Sys.Date()`"
+output: 
+pdf_document : default
+html_document : default
+
+  
+  
+---
+
+  
+## Task: Importing the important libraries
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(tidyverse)
+library(readr)
+library(reshape2)
+library(ggExtra)
+library(fmsb)
+library(plotly)
+
+```
+
+
+## Importing the dataset
+
+```{r}
+data <- read.csv("C:/Users/Hp/Desktop/Intersteller/Intersteller/Intersteller.csv")
+head(data)
+```
+## Task: Summarize the dataset
+
+
+```{r}
+summary(data)
+```
+
+## Task: Check for missing values and duplicates
+
+
+```{r}
+# Check for missing values
+missing_values <- sapply(data, function(x) sum(is.na(x)))
+print(missing_values)
+```
+
+## Task: Remove duplicates and unnecessary columns.
+```{r}
+# Remove duplicate rows based on 'obj_ID'
+data_clean <- data %>% distinct(obj_ID, .keep_all = TRUE)
+data_clean
+```
+
+
+## Task: Remove unnecessary columns
+```{r}
+# Remove the 'obj_ID' and 'spec_obj_ID' columns
+data <- data[, !(names(data) %in% c('obj_ID', 'spec_obj_ID'))]
+data
+```
+
+## Task: Transform the 'class' column into a factor
+```{r}
+table(data_clean$class)
+```
+## Task: Class distribution and visualize the class distribution
+```{r}
+# Class distribution
+table(data_clean$class)
+
+# Visualize class distribution
+ggplot(data_clean, aes(x = class)) +
+  geom_bar(fill = "skyblue") +
+  theme_minimal() +
+  ggtitle("Distribution of Object Classes")
+
+```
+Interpretation: The dataset contains three classes of celestial objects: GALAXY, STAR, and QUASAR. The distribution of object classes shows that there are more galaxies and stars compared to quasars. This information is important for understanding the composition of the dataset and the prevalence of different types of celestial objects.
+
+## Task: Distribution of celestial coordinates (alpha and delta)
+
+```{r}
+# Distribution of alpha
+ggplot(data_clean, aes(x = alpha)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  theme_minimal() +
+  ggtitle("Distribution of Alpha (Right Ascension)")
+```
+Interpretation: The histogram shows the distribution of the 'alpha' values, which represent the right ascension of celestial objects. The distribution appears to be relatively uniform, indicating a wide range of right ascension values in the dataset.
+
+
+## Task: Distribution of delta
+
+```{r}
+# Distribution of delta
+ggplot(data_clean, aes(x = delta)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  theme_minimal() +
+  ggtitle("Distribution of Delta (Declination)")
+```
+Interpretation: The histogram shows the distribution of the 'delta' values, which represent the declination of celestial objects. The distribution appears to be relatively uniform, indicating a wide range of declination values in the dataset.
+
+## Task: Distribution of photometric measurements (u, g, r, i, z)
+
+```{r}
+# Distribution of u filter
+ggplot(data_clean, aes(x = u)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  theme_minimal() +
+  ggtitle("Distribution of Ultraviolet Filter (u)")
+```
+Interpretation: The histogram shows the distribution of the 'u' filter measurements, which represent the brightness of celestial objects in the ultraviolet spectrum. The distribution appears to have multiple peaks, indicating different levels of brightness in the ultraviolet filter.
+
+## Task: Create a histogram of distribution of ultraviolet filter (u)
+
+```{r}
+# Distribution of u filter
+ggplot(data_clean, aes(x = r)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  theme_minimal() +
+  ggtitle("Distribution of Ultraviolet Filter (u)")
+```
+Interpretation: The histogram shows the distribution of the 'u' filter measurements, which represent the brightness of celestial objects in the ultraviolet spectrum. The distribution appears to have multiple peaks, indicating different levels of brightness in the ultraviolet filter.
+
+## Task: Normalize the features like u, g, r, i, z, and redshift
+
+```{r}
+# Normalize features like u, g, r, i, z, and redshift
+data_clean <- data_clean %>%
+  mutate(across(c(u, g, r, i, z, redshift), scale))
+data_clean
+```
+
+
+## Task: Create a histogram of distribution of redshift
+
+
+```{r}
+# Plot redshift distribution
+ggplot(data_clean, aes(x = redshift)) +
+  geom_histogram(bins = 50, fill = "skyblue", color = "black") +
+  theme_minimal() +
+  ggtitle("Redshift Distribution")
+```
+Interpretation: The histogram shows the distribution of redshift values in the dataset. Redshift is an important feature that indicates the distance and velocity of celestial objects. The distribution of redshift values can provide insights into the movement and distance of galaxies, stars, and quasars in the dataset.
+
+## Task: Create a scatter plot of celestial coordinates (alpha vs delta)
+
+```{r}
+# Plot celestial coordinates (alpha vs delta)
+ggplot(data_clean, aes(x = alpha, y = delta, color = class)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  ggtitle("Celestial Coordinates by Object Class") +
+  scale_color_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The scatter plot shows the distribution of celestial objects based on their coordinates (alpha and delta). Each point represents an object in the dataset, with different colors indicating the object class (GALAXY, STAR, QUASAR). The plot helps visualize the spatial distribution of celestial objects in the dataset.
+
+
+
+
+## Task: Create a density plot of photometric filters (u, g, r, i, z)
+
+```{r}
+
+# Restructure the data to long format
+data_long <- data_clean %>%
+  pivot_longer(cols = c(u, g, r, i, z), names_to = "filter", values_to = "value")
+
+# Create the individual density plots
+ggplot(data_long, aes(x = value, color = filter)) +
+  geom_density(size = 1) +
+  facet_wrap(~filter, scales = "free_x") +  # Creates individual plots for each filter
+  theme_minimal() +
+  ggtitle("Density Plot of Photometric Filters") +
+  scale_color_manual(values = c("u" = "blue", "g" = "green", "r" = "red", "i" = "purple", "z" = "orange")) +
+  labs(color = "Filter")
+```
+Intrepretation: The density plots show the distribution of photometric measurements (u, g, r, i, z) in the dataset. Each plot represents the density of values for a specific filter, allowing you to compare the brightness levels across different filters. The plots provide insights into the distribution of brightness values in the ultraviolet, green, red, near-infrared, and infrared filters.
+
+
+
+## Task: Create a scatter plot of redshift vs photometric measurements (u, g, r, i, z)
+
+```{r}
+
+# Restructure the data to long format
+data_long <- data_clean %>%
+  pivot_longer(cols = c(u, g, r, i, z), names_to = "filter", values_to = "value")
+
+# Create the individual plots
+ggplot(data_long, aes(x = redshift, y = value, color = filter)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~filter, scales = "free_y") +  # Creates individual plots for each filter
+  theme_minimal() +
+  ggtitle("Redshift vs Photometric Measurements") +
+  scale_color_manual(values = c("u" = "blue", "g" = "green", "r" = "red", "i" = "purple", "z" = "orange")) +
+  labs(color = "Filter")
+
+
+```
+Interpretation: The scatter plots show the relationship between redshift and photometric measurements (u, g, r, i, z) in the dataset. Each plot represents the correlation between redshift and brightness levels in a specific filter, allowing you to visualize how redshift varies with different photometric measurements. The plots provide insights into the relationship between distance and brightness of celestial objects in the dataset.
+
+
+## Task: Create a box plot of photometric filters (u, g, r, i, z) by object class
+
+```{r}
+# Class vs Redshift (box plot)
+ggplot(data_clean, aes(x = class, y = redshift, fill = class)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Redshift Distribution by Object Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The box plot shows the distribution of redshift values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The box plot provides insights into the variation of redshift values within each object class, allowing you to compare the distance and velocity of galaxies, stars, and quasars based on their redshift values.
+
+
+## Task: Create a histogram of redshift across object classes
+
+```{r}
+# Histogram of redshift across object classes
+ggplot(data_clean, aes(x = redshift, fill = class)) +
+  geom_histogram(bins = 30, alpha = 0.7, position = "identity") +
+  theme_minimal() +
+  ggtitle("Redshift Distribution by Object Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The histogram shows the distribution of redshift values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The histogram provides insights into the variation of redshift values within each object class, allowing you to compare the distance and velocity of galaxies, stars, and quasars based on their redshift values.
+```{r}
+colnames(data_clean)
+```
+
+
+
+
+## Task: Calculate the correlation between alpha and delta
+
+
+```{r}
+# Calculate correlation between alpha and delta
+cor_alpha_delta <- cor(data_clean$alpha, data_clean$delta)
+print(cor_alpha_delta)
+```
+## Task: Create a scatter plot of alpha vs delta with a regression line.
+
+```{r}
+# Scatter plot with different colors for alpha (points) and delta (regression line)
+ggplot(data_clean, aes(x = alpha, y = delta)) +
+  geom_point(alpha = 0.5, color = "blue") +  # Points for alpha vs delta in blue
+  geom_smooth(method = "lm", aes(color = "Delta Regression Line"), linetype = "solid", size = 1.2) +  # Regression line in red
+  scale_color_manual(values = c("Delta Regression Line" = "red")) +  # Set color for the regression line
+  theme_minimal() +
+  ggtitle("Alpha vs Delta with Separate Colors for Points and Regression Line") +
+  labs(color = "Legend")  # Legend to label the regression line
+```
+Interpretation: The scatter plot shows the relationship between celestial coordinates alpha and delta. The points represent the distribution of objects based on their right ascension (alpha) and declination (delta). The regression line indicates the linear relationship between alpha and delta, providing insights into the spatial distribution of celestial objects in the dataset.
+
+## Task: Create a boxplot for red filter (r) by class
+
+```{r}
+# Boxplot for Red filter (r) by class
+ggplot(data_clean, aes(x = class, y = r, fill = class)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Red Filter (r) Distribution by Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The box plot shows the distribution of red filter (r) values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The box plot provides insights into the variation of red filter values within each object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the red filter measurements.
+
+## Task: Create a boxplot for near-infrared filter (i) by class
+
+```{r}
+# Boxplot for Near Infrared filter (i) by class
+ggplot(data_clean, aes(x = class, y = i, fill = class)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Near Infrared Filter (i) Distribution by Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The box plot shows the distribution of near-infrared filter (i) values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The box plot provides insights into the variation of near-infrared filter values within each object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the near-infrared filter measurements.
+
+## Task: Create a violin plot for ultraviolet filter (u) by class
+
+```{r}
+# Violin plot for Ultraviolet filter (u) by class
+ggplot(data_clean, aes(x = class, y = i, fill = class)) +
+  geom_violin(trim = FALSE) +
+  theme_minimal() +
+  ggtitle("Ultraviolet Filter (u) Distribution by Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The violin plot shows the distribution of ultraviolet filter (u) values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The plot provides insights into the variation of ultraviolet filter values within each object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the ultraviolet filter measurements.
+## Task: Create a violin plot for ultraviolet filter (u) by class
+
+
+```{r}
+# Violin plot for Ultraviolet filter (u) by class
+ggplot(data_clean, aes(x = class, y = r, fill = class)) +
+  geom_violin(trim = FALSE) +
+  theme_minimal() +
+  ggtitle("Ultraviolet Filter (u) Distribution by Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+
+```
+Interpretation: The violin plot shows the distribution of ultraviolet filter (u) values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The plot provides insights into the variation of ultraviolet filter values within each object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the ultraviolet filter measurements.
+
+## Task: Create a density plot for ultraviolet filter (u) by class
+
+```{r}
+# Density plot for Ultraviolet filter (u) by class
+ggplot(data_clean, aes(x = i, fill = class)) +
+  geom_density(alpha = 0.5) +
+  theme_minimal() +
+  ggtitle("Ultraviolet Filter (u) Density by Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The density plot shows the distribution of ultraviolet filter (u) values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The plot provides insights into the density of brightness values within each object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the ultraviolet filter measurements.
+
+## Task: Create a density plot for  filter (r) by class
+
+```{r}
+# Density plot for  filter (r) by class
+ggplot(data_clean, aes(x = r, fill = class)) +
+  geom_density(alpha = 0.5) +
+  theme_minimal() +
+  ggtitle(" Filter (r) Density by Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The density plot shows the distribution of  filter (r) values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The plot provides insights into the density of brightness values within each object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the  filter measurements.
+
+## Task: Create a contour plot for alpha, delta, and u filter
+
+```{r}
+# Contour plot for alpha, delta, and u filter
+p <- ggplot(data_clean, aes(x = alpha, y = delta, z = u)) +
+  geom_density_2d() +
+  theme_minimal() +
+  ggtitle("Contour Plot of Alpha vs Delta with Ultraviolet Filter (u)")
+p
+```
+Interpretation: The contour plot shows the density distribution of celestial objects based on their coordinates (alpha and delta) and ultraviolet filter (u) values. The contour lines represent the density of objects in different regions of the plot, allowing you to visualize the spatial distribution of objects based on their coordinates and brightness levels in the ultraviolet filter.
+
+## Task: Create a line plot for redshift over alpha
+
+```{r}
+# Line plot showing trends in redshift over alpha
+ggplot(data_clean, aes(x = alpha, y = redshift)) +
+  geom_line() +
+  labs(title = "Line Plot: Redshift over Alpha", x = "Alpha", y = "Redshift") +
+  theme_minimal()
+```
+Interpretation: The line plot shows the trends in redshift values over the right ascension (alpha) of celestial objects. The plot helps visualize the relationship between redshift and celestial coordinates, providing insights into the movement and distance of galaxies, stars, and quasars based on their right ascension values.
+
+## Task: Create a histogram of redshift by object class
+
+```{r}
+# Facet grid for comparing u filter across classes
+ggplot(data_clean, aes(x = u)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", alpha = 0.7) +
+  facet_wrap(~ class, scales = "free") +
+  labs(title = "Histogram of u Filter by Class", x = "u", y = "Count") +
+  theme_minimal()
+```
+Interpretation: The facet grid shows the distribution of ultraviolet filter (u) values across different object classes (GALAXY, STAR, QUASAR) in the dataset. Each facet represents a different object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the ultraviolet filter measurements.
+
+## Task: Create a 3D scatter plot for alpha, delta, and redshift
+
+```{r}
+
+
+# 3D Scatter plot for alpha, delta, and redshift
+plot_ly(data_clean, x = ~alpha, y = ~delta, z = ~redshift, color = ~class, colors = c('blue', 'green', 'red')) %>%
+  add_markers() %>%
+  layout(title = "3D Scatter Plot: Alpha vs Delta vs Redshift",
+         scene = list(xaxis = list(title = 'Alpha'),
+                      yaxis = list(title = 'Delta'),
+                      zaxis = list(title = 'Redshift')))
+```
+Interpretation: The 3D scatter plot shows the distribution of celestial objects based on their coordinates (alpha and delta) and redshift values. Each point represents an object in the dataset, with different colors indicating the object class (GALAXY, STAR, QUASAR). The plot helps visualize the spatial distribution of celestial objects in 3D space, providing insights into the relationship between coordinates and redshift values.
+
+## Task: Create a histogram of redshift by object class
+
+```{r}
+# Facet grid for comparing u filter across classes
+ggplot(data_clean, aes(x = i)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", alpha = 0.7) +
+  facet_wrap(~ class, scales = "free") +
+  labs(title = "Histogram of u Filter by Class", x = "i", y = "Count") +
+  theme_minimal()
+
+```
+Interpretation: The facet grid shows the distribution of i filter values across different object classes (GALAXY, STAR, QUASAR) in the dataset. Each facet represents a different object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the i filter measurements.
+
+
+## Task: Create a histogram using facet_wrap for g filter by class
+
+```{r}
+# Facet grid for comparing u filter across classes
+ggplot(data_clean, aes(x = g)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", alpha = 0.7) +
+  facet_wrap(~ class, scales = "free") +
+  labs(title = "Histogram of u Filter by Class", x = "g", y = "Count") +
+  theme_minimal()
+
+```
+Interpretation: The facet grid shows the distribution of g filter values across different object classes (GALAXY, STAR, QUASAR) in the dataset. Each facet represents a different object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the g filter measurements.
+
+## Task: Create a histogram using facet_wrap for z filter by class
+
+```{r}
+# Facet grid for comparing u filter across classes
+ggplot(data_clean, aes(x = z)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", alpha = 0.7) +
+  facet_wrap(~ class, scales = "free") +
+  labs(title = "Histogram of u Filter by Class", x = "z", y = "Count") +
+  theme_minimal()
+
+```
+Interpretation: The facet grid shows the distribution of z filter values across different object classes (GALAXY, STAR, QUASAR) in the dataset. Each facet represents a different object class, allowing you to compare the brightness levels of galaxies, stars, and quasars based on the z filter measurements.
+
+## Task: Create a CDF for redshift
+
+```{r}
+# CDF for Redshift
+ggplot(data_clean, aes(x = redshift)) +
+  stat_ecdf(geom = "step", color = "skyblue") +
+  theme_minimal() +
+  ggtitle("Cumulative Distribution Function (CDF) for Redshift")
+```
+Interpretation: The cumulative distribution function (CDF) shows the distribution of redshift values in the dataset. The CDF curve represents the cumulative probability of observing a redshift value less than or equal to a specific value. The plot provides insights into the distribution of redshift values and the probability of observing different redshift levels in the dataset.
+
+## Task: Create a radial plot for celestial coordinates
+
+
+```{r}
+# Radial plot for celestial coordinates
+ggplot(data_clean, aes(x = alpha, y = delta, color = class)) +
+  geom_point(alpha = 0.5) +
+  coord_polar() +
+  theme_minimal() +
+  ggtitle("Radial Plot of Celestial Coordinates") +
+  scale_color_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The radial plot shows the distribution of celestial objects based on their coordinates (alpha and delta) in a circular format. Each point represents an object in the dataset, with different colors indicating the object class (GALAXY, STAR, QUASAR). The plot helps visualize the spatial distribution of celestial objects in a radial format, providing insights into the arrangement of objects based on their coordinates.
+
+## Task: Create a correlation heatmp for numeric columns
+```{r}
+
+
+# Select only numeric columns
+numeric_data <- data_clean %>% select(alpha, delta, u, g, r, i, z, redshift)
+
+# Calculate correlation matrix
+correlation_matrix <- cor(numeric_data)
+
+# Melt the correlation matrix for visualization
+correlation_melted <- melt(correlation_matrix)
+
+# Plot heatmap using ggplot2
+ggplot(correlation_melted, aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1, 1), space = "Lab", 
+                       name="Correlation") +
+  theme_minimal() +
+  labs(title = "Correlation Heatmap") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1))
+```
+Interpretation: The correlation heatmap shows the pairwise correlation between numeric columns in the dataset. The heatmap visualizes the strength and direction of the relationships between different variables, with colors indicating the correlation coefficients. The plot helps identify patterns and associations between celestial coordinates, photometric measurements, and redshift values in the dataset.
+
+## Task: Create a spline plot for redshift over alpha
+```{r}
+# Spline plot for redshift over alpha
+ggplot(data_clean, aes(x = alpha, y = redshift)) +
+  geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs")) +
+  theme_minimal() +
+  ggtitle("Spline Plot: Smoothed Redshift Trends Over Alpha")
+```
+Interpretation: The spline plot shows the smoothed trends in redshift values over the right ascension (alpha) of celestial objects. The plot uses a generalized additive model (GAM) to fit a smooth curve to the data, allowing you to visualize the relationship between redshift and celestial coordinates in a non-linear fashion.
+
+## Task: Create a stacked bar plot for object class distribution by filters
+```{r}
+# Stacked bar plot for object class distribution by filters
+data_long %>%
+  ggplot(aes(x = filter, fill = class)) +
+  geom_bar(position = "stack") +
+  theme_minimal() +
+  ggtitle("Stacked Bar Plot of Object Class by Photometric Filters") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The stacked bar plot shows the distribution of object classes (GALAXY, STAR, QUASAR) based on photometric filters (u, g, r, i, z) in the dataset. Each bar represents the count of objects in a specific filter, with different colors indicating the object class. The plot helps visualize the distribution of object classes across different photometric filters, providing insights into the composition of the dataset.
+
+## Task: Create a time-series plot for redshift over MJD
+```{r}
+# Time-series plot of redshift over MJD
+ggplot(data_clean, aes(x = MJD, y = redshift)) +
+  geom_line(color = "skyblue") +
+  theme_minimal() +
+  ggtitle("Time-Series Plot: Redshift Over MJD")
+```
+Interpretation: The time-series plot shows the trends in redshift values over time (Modified Julian Date - MJD) in the dataset. The plot helps visualize the changes in redshift values over different epochs, providing insights into the movement and distance of celestial objects over time.
+
+## Task: Create a bar plot for count of observations by filter and class
+```{r}
+# Count of observations by filter and class
+ggplot(data_long, aes(x = filter, fill = class)) +
+  geom_bar(position = "dodge") +
+  theme_minimal() +
+  ggtitle("Count of Observations by Filter and Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The bar plot shows the count of observations based on photometric filters (u, g, r, i, z) and object classes (GALAXY, STAR, QUASAR) in the dataset. Each bar represents the number of observations in a specific filter, with different colors indicating the object class. The plot helps visualize the distribution of observations across different filters and classes, providing insights into the dataset composition.
+
+## Task : Create a time series of redshift over time (MJD)
+```{r}
+# Time series of redshift over time (MJD)
+ggplot(data_clean, aes(x = MJD, y = redshift, color = class)) +
+  geom_line() +
+  theme_minimal() +
+  ggtitle("Time-Series of Redshift Over MJD by Class") +
+  scale_color_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The time-series plot shows the trends in redshift values over time (Modified Julian Date - MJD) in the dataset, with different colors indicating the object class (GALAXY, STAR, QUASAR). The plot helps visualize the changes in redshift values over different epochs, providing insights into the movement and distance of celestial objects over time.
+
+## Task: Create a scatter plot with marginal histograms for alpha vs delta
+```{r}
+
+
+
+# Scatter plot with marginal histograms for alpha vs delta
+p <- ggplot(data_clean, aes(x = alpha, y = delta, color = class)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  ggtitle("Alpha vs Delta with Marginal Distributions")
+
+ggMarginal(p, type = "histogram", fill = "skyblue")
+```
+Interpretation: The scatter plot shows the relationship between celestial coordinates alpha and delta, with different colors indicating the object class (GALAXY, STAR, QUASAR). The plot includes marginal histograms for alpha and delta, providing additional insights into the distribution of coordinates and the density of objects in the dataset.
+
+## Task: Create a radar chart for average filter values by object class
+```{r}
+
+
+
+# Prepare data for radar plot
+data_radar <- data_clean %>%
+  group_by(class) %>%
+  summarise(across(c(u, g, r, i, z), mean))
+
+# Add max and min rows for scaling
+data_radar <- rbind(rep(1,5), rep(0,5), data_radar[,-1])
+
+# Create radar chart
+radarchart(data_radar, axistype = 1,
+           pcol = c("blue", "green", "red"), 
+           plwd = 2, plty = 1, 
+           title = "Radar Chart: Average Filter Values by Object Class")
+```
+Interpretation: The radar chart shows the average filter values (u, g, r, i, z) for different object classes (GALAXY, STAR, QUASAR) in the dataset. Each axis represents a filter, and the radar chart helps visualize the average brightness levels of objects in each class across different filters. The plot provides insights into the distribution of filter values and the brightness characteristics of galaxies, stars, and quasars.
+
+## Task: Create a hexbin plot for alpha vs delta
+```{r}
+# Hexbin plot for alpha vs delta
+ggplot(data_clean, aes(x = alpha, y = delta)) +
+  geom_hex(bins = 30) +
+  theme_minimal() +
+  scale_fill_viridis_c() +
+  ggtitle("Hexbin Plot: Density of Alpha and Delta")
+
+```
+Interpretation: The hexbin plot shows the density of celestial objects based on their coordinates alpha and delta. The plot uses hexagonal bins to represent the density of objects in different regions of the plot, allowing you to visualize the spatial distribution of objects in a hexagonal format. The plot provides insights into the arrangement and density of celestial objects based on their coordinates.
+
+## Task: Create a boxplot for redshift by class
+```{r}
+# Boxplot for redshift by class
+ggplot(data_clean, aes(x = class, y = redshift, fill = class)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Redshift Distribution by Object Class") +
+  scale_fill_manual(values = c("GALAXY" = "blue", "STAR" = "green", "QUASAR" = "red"))
+```
+Interpretation: The box plot shows the distribution of redshift values across different object classes (GALAXY, STAR, QUASAR) in the dataset. The box plot provides insights into the variation of redshift values within each object class, allowing you to compare the distance and velocity of galaxies, stars, and quasars based on their redshift values.
+```{r}
+# Calculate median photometric values for each redshift bin
+data_summary <- data_clean %>%
+  group_by(redshift_bin) %>%
+  summarise(across(c(u, g, r, i, z), ~median(.x, na.rm = TRUE), .names = "median_{.col}"))
+
+# Line plot for median u filter value vs redshift bin
+ggplot(data_summary, aes(x = redshift_bin, y = median_u)) +
+  geom_line(color = "skyblue", size = 1) +
+  theme_minimal() +
+  ggtitle("Median Ultraviolet (u) Filter Value vs Redshift Bin") +
+  labs(x = "Redshift Bin (Epoch)", y = "Median u Filter Value")
+
+
+```
+```{r}
+# Calculate median photometric values for each redshift bin
+data_summary <- data_clean %>%
+  group_by(redshift) %>%
+  summarise(across(c(u, g, r, i, z), median, na.rm = TRUE))
+
+# Line plot for median i filter value vs redshift bin
+ggplot(data_summary, aes(x = redshift_bin, y = i, group = 1)) +
+  geom_line(color = "skyblue", size = 1) +
+  theme_minimal() +
+  ggtitle("Median (i) Value vs Redshift Category (Epoch)") +
+  labs(x = "Redshift Category (Epoch)", y = "Median i Filter Value")
+```
+```{r}
+# Calculate median photometric values for each redshift bin
+data_summary <- data_clean %>%
+  group_by(redshift_bin) %>%
+  summarise(across(c(u, g, r, i, z), median, na.rm = TRUE))
+
+# Line plot for median i filter value vs redshift bin
+ggplot(data_summary, aes(x = redshift_bin, y = g, group = 1)) +
+  geom_line(color = "skyblue", size = 1) +
+  theme_minimal() +
+  ggtitle("Median (g) Value vs Redshift Category (Epoch)") +
+  labs(x = "Redshift Category (Epoch)", y = "Median g Filter Value")
+
+```
+
+```{r}
+# Calculate median photometric values for each redshift bin
+data_summary <- data_clean %>%
+  group_by(redshift_bin) %>%
+  summarise(across(c(u, g, r, i, z), median, na.rm = TRUE))
+
+# Line plot for median i filter value vs redshift bin
+ggplot(data_summary, aes(x = redshift_bin, y = r, group = 1)) +
+  geom_line(color = "skyblue", size = 1) +
+  theme_minimal() +
+  ggtitle("Median (r) Value vs Redshift Category (Epoch)") +
+  labs(x = "Redshift Category (Epoch)", y = "Median r Filter Value")
+
+```
+```{r}
+# Calculate median photometric values for each redshift bin
+data_summary <- data_clean %>%
+  group_by(redshift_bin) %>%
+  summarise(across(c(u, g, r, i, z), median, na.rm = TRUE))
+
+# Line plot for median i filter value vs redshift bin
+ggplot(data_summary, aes(x = redshift_bin, y = z, group = 1)) +
+  geom_line(color = "skyblue", size = 1) +
+  theme_minimal() +
+  ggtitle("Median (z) Value vs Redshift Category (Epoch)") +
+  labs(x = "Redshift Category (Epoch)", y = "Median z Filter Value")
+
+```
+
+
+
+

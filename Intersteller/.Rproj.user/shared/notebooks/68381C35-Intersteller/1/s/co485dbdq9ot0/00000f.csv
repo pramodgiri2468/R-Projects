@@ -1,0 +1,5 @@
+"0","# Plot redshift distribution"
+"0","ggplot(data_clean, aes(x = redshift)) +"
+"0","  geom_histogram(bins = 50, fill = ""skyblue"", color = ""black"") +"
+"0","  theme_minimal() +"
+"0","  ggtitle(""Redshift Distribution"")"

@@ -1,0 +1,12 @@
+name: Intersteller
+title: Intersteller
+username: pramodgiri
+account: pramodgiri
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13071541
+bundleId: 9246680
+url: https://pramodgiri.shinyapps.io/Intersteller/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
